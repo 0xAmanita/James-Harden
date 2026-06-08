@@ -62,9 +62,26 @@ usermod -aG sudo "$NEW_USER"
 log "User created"
 fi
 
+# =================================== 
+
+# 3. COPY SSH KEYS TO NEW USER 
+
+# =================================== 
+
+section "3. Copying SSH Keys to $NEW_USER" 
+
+if [[ -d /root/.ssh ]]; then
+    rsync --archive --chown="$NEW_USER:$NEW_USER" /root/.ssh /home/"$NEW_USER" 
+    chmod 700 /home/"$NEW_USER"/.ssh 
+    chmod 600 /home/"$NEW_USER"/.ssh/authorized_keys 2>/dev/null || true 
+    log "SSH keys copied to /home/$NEW_USER/.ssh" 
+else 
+    warn "No .ssh directory found in /root. Skipping SSH key copy."
+fi
+
 # ===================================
 
-# 3. SSH BACKUP + SAFETY CHECK
+# 4. SSH BACKUP + SAFETY CHECK
 
 # ===================================
 
@@ -79,7 +96,7 @@ sshd -t || error "Invalid SSH config BEFORE changes"
 
 # ===================================
 
-# 4. APPLY SAFE SSH HARDENING
+# 5. APPLY SAFE SSH HARDENING
 
 # ===================================
 
@@ -127,7 +144,7 @@ log "SSH validated and running safely"
 
 # ===================================
 
-# 5. FIREWALL (ONLY AFTER SSH CONFIRMED)
+# 6. FIREWALL (ONLY AFTER SSH CONFIRMED)
 
 # ===================================
 
@@ -154,7 +171,7 @@ log "Firewall active safely"
 
 # ===================================
 
-# 6. FAIL2BAN
+# 7. FAIL2BAN
 
 # ===================================
 
@@ -181,11 +198,11 @@ log "Fail2Ban active"
 
 # ===================================
 
-# 7. Shell Aliases
+# 8. Shell Aliases
 
 # ===================================
 
-section "7. Setting up Shell Aliases"
+section "8. Setting up Shell Aliases"
 
 BASHRC="/home/$NEW_USER/.bashrc"
 
@@ -205,11 +222,11 @@ log "Aliases added to $BASHRC"
 
 # =============================================================================
 
-# 8. KERNEL HARDENING via sysctl
+# 9. KERNEL HARDENING via sysctl
 
 # =============================================================================
 
-section "8. Kernel Hardening (sysctl)"
+section "9. Kernel Hardening (sysctl)"
 
 cat > /etc/sysctl.d/99-hardening.conf <<EOF
 # IP Spoofing protection
@@ -246,7 +263,7 @@ log "Kernel hardening applied."
 
 # =============================================================================
 
-section "9. Enabling Unattended Security Upgrades"
+section "10. Enabling Unattended Security Upgrades"
 
 apt install -y unattended-upgrades
 dpkg-reconfigure -f noninteractive unattended-upgrades
@@ -254,7 +271,7 @@ log "Unattended security upgrades enabled."
 
 # ===================================
 
-# 10. VERIFY FINAL ACCESS SAFETY
+# 11. VERIFY FINAL ACCESS SAFETY
 
 # ===================================
 
