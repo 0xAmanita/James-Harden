@@ -90,6 +90,10 @@ section "SSH Config Backup"
 SSH_CONFIG="/etc/ssh/sshd_config"
 cp "$SSH_CONFIG" "${SSH_CONFIG}.bak.$(date +%F-%H%M%S)"
 
+# Ensure runtime directory exists
+mkdir -p /run/sshd
+chmod 0755 /run/sshd
+
 # Validate config BEFORE changes
 
 sshd -t || error "Invalid SSH config BEFORE changes"
